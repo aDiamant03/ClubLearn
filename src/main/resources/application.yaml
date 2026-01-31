@@ -1,3 +1,5 @@
-spring:
-  application:
-    name: ClubLearn
+app:
+  max-tasks: 3
+  banned-names:
+    - admin
+    - lox
