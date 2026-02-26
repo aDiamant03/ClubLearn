@@ -1,14 +1,27 @@
+# Multistage сборка
 # Используем легковесный образ с Java
-FROM eclipse-temurin:17-jdk-jammy
-
+# Первый этап:
+FROM eclipse-temurin:17-jdk-jammy AS builder
 # Рабочая директория внутри контейнера
 WORKDIR /app
-
-# Копируем jar в контейнер
 COPY build/libs/team-project-0.0.1-SNAPSHOT.jar /app/app.jar
+# Это был собран промежуточный образ, в котором можно запустить тесты.
 
-# Порт (если это веб-приложение - можно изменить)
+
+# Второй этап:
+FROM eclipse-termium:17-jdk-jammy
+WORKDIR /app
+# Копируем jar из предудщей стадии
+COPY --builder /app/app.jar .
+# Порт
 EXPOSE 8080
-
-# Команда запуска
+# Точка входа в приложения
 ENTRYPOINT ["java", "-jar", "app.jar"]
+# Это финальная сборка, готовая к запуску
+
+
+
+
+
+
+
