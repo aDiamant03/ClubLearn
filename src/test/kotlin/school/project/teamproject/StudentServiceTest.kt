@@ -37,4 +37,5 @@ class StudentServiceTest{
         assertThat(found).isEqualTo(s1)
         assertThat(found?.name).isEqualTo("Ivan")
     }
+
 }
