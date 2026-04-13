@@ -3,3 +3,12 @@ app:
   banned-names:
     - admin
     - lox
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: always

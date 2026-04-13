@@ -28,11 +28,9 @@ WORKDIR /app
 # Создаем обычного пользователя (без лишних групп)
 RUN adduser --system --uid 1001 appuser
 # Копируем jar ИЗ ПЕРВОГО ЭТАПА (builder) ВО ВТОРОЙ ЭТАП
-COPY --from=builder --chown=appuser:appuser /app/build/libs/*.jar app.jar
-# Cоздать директорию для данных (если нужна), но без привязки к группам
-RUN mkdir -p /data && chown appuser:appuser /data
-# Переключаемся на пользователя appuser
-USER appuser
+COPY --from=builder /app/build/libs/*.jar app.jar
+RUN mkdir -p /data
+USER 1001
 # Порт
 EXPOSE 8080
 # Точка входа в приложение
