@@ -1,0 +1,4 @@
+databaseChangeLog:
+  - include: { file: db/createUserTables.yaml }
+  - include: { file: db/createTasksTable.yaml }
+  - include: { file: db/createAttemptTable.yaml }

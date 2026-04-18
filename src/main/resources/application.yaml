@@ -1,14 +1,10 @@
-app:
-  max-tasks: 3
-  banned-names:
-    - admin
-    - lox
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,prometheus
-  endpoint:
-    health:
-      show-details: always
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/testdb
+    username: user
+    password: pass
+  jpa:
+    hibernate:
+      ddl-auto: none
+  liquibase:
+    change-log: classpath:db/.changelog-master.yaml
