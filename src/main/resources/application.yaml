@@ -1,10 +1,10 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/testdb
+    url: jdbc:postgresql://postgres:5432/testdb
     username: user
     password: pass
   jpa:
     hibernate:
       ddl-auto: none
   liquibase:
-    change-log: classpath:db/.changelog-master.yaml
+    change-log: classpath:db/changelock-master.yaml
