@@ -13,9 +13,9 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_DB: название_твоей_базы
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: твой_пароль
+          POSTGRES_DB: testdb
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: pass
         ports:
           - 5432:5432
         options: >-
