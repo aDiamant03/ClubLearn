@@ -13,7 +13,7 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_DB: testdb
+          POSTGRES_DB: jdbc:postgresql://localhost:5432/testdb
           POSTGRES_USER: user
           POSTGRES_PASSWORD: pass
         ports:
