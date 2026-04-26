@@ -7,6 +7,6 @@ CREATE TABLE tasks
 );
 
 ALTER TABLE tasks
-    ADD CONSTRAINT fk_tasks_users
-        FOREIGN KEY (user_id)
-            REFERENCES users (id);
+ADD CONSTRAINT fk_tasks_users
+FOREIGN KEY (user_id)
+REFERENCES users (id);
