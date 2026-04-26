@@ -1,0 +1,3 @@
+--include file:db/changelog/001-users.sql
+--include file:db/changelog/002-tasks.sql
+--include file:db/changelog/003-attempts.sql
