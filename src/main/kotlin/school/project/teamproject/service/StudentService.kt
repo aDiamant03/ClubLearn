@@ -15,8 +15,8 @@ class StudentService {
         return newStudent
     }
     fun getAll(): List<Student> = students.toList()
-    fun getById(id: Long?): Student? = students.find { it.id == id }
-    fun delete(id: Long?): Boolean = students.removeIf { it.id == id }
+    fun getById(id: Long): Student? = students.find { it.id == id }
+    fun delete(id: Long): Boolean = students.removeIf { it.id == id }
     fun clear() {
         students.clear()
         idGenerator.set(1)
