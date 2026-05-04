@@ -2,6 +2,7 @@ package school.project.teamproject.model
 import java.time.LocalDateTime
 data class Task(
     val id: Long? = null,
+    val teacherId: Long,
     val title: String,
     val description: String? = null,
     val answer: String?,
