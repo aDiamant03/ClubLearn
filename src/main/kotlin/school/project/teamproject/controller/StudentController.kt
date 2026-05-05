@@ -7,11 +7,12 @@ import school.project.teamproject.dto.StudentCreateRequest
 import school.project.teamproject.dto.StudentResponse
 import school.project.teamproject.model.Student
 import school.project.teamproject.service.StudentService
-
+import school.project.teamproject.mapper.toResponse
 
 @RestController
 @RequestMapping("/api/students")
 class StudentController(val studentService: StudentService) {
+
     @PostMapping
     fun create(@RequestBody request: StudentCreateRequest): ResponseEntity<StudentResponse> {
         val tempStudent = Student(
@@ -23,12 +24,14 @@ class StudentController(val studentService: StudentService) {
             grade = request.grade
         )
         val createdStudent = studentService.create(tempStudent)
-        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(createdStudent))
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdStudent.toResponse())
     }
+
     @GetMapping
     fun getAllStudents(): List<StudentResponse> {
-        return studentService.getAll().map { toResponse(it) }
+        return studentService.getAll().map { it.toResponse() }
     }
+
     @DeleteMapping("/{id}")
     fun deleteStudent(@PathVariable id: Long): ResponseEntity<Void> {
         val deleted = studentService.delete(id)
@@ -36,14 +39,3 @@ class StudentController(val studentService: StudentService) {
         else ResponseEntity.notFound().build()
     }
 }
-
-
-
-
-private fun toResponse(student: Student) = StudentResponse(
-    id = student.id,
-    name = student.name,
-    surname = student.surname,
-    email = student.email,
-    grade = student.grade
-)
