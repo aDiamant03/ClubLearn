@@ -19,7 +19,9 @@ COPY build.gradle.kts .
 COPY settings.gradle.kts .
 COPY src src
 # Собираем приложение
-RUN ./gradlew clean build -x test
+RUN ./gradlew --version
+RUN ./gradlew dependencies --no-daemon
+RUN ./gradlew clean build -x test --no-daemon
 
 # Второй этап: ФИНАЛЬНЫЙ ОБРАЗ
 FROM eclipse-temurin:17-jre-jammy
