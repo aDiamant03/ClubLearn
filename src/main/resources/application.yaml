@@ -7,7 +7,7 @@ spring:
     hibernate:
       ddl-auto: none
   liquibase:
-    change-log: classpath:db/changelog-master.yaml
+    change-log: classpath:changelog-master.yaml
 app:
   security:
     username: "bat1354"
