@@ -3,7 +3,7 @@ package school.project.teamproject.model
 
 
 data class Student(
-    val id: Long,
+    val id: Long?= null,
     val name: String,
     val surname: String,
     val email: String,

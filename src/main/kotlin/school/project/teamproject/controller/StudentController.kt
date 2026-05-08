@@ -20,7 +20,6 @@ class StudentController(val studentService: StudentService) {
     fun create(@RequestBody request: StudentCreateRequest): ResponseEntity<StudentResponse> {
         log.info("POST /api/students - запрос на создание студента: {}", request.email)
         val tempStudent = Student(
-            id = 0,
             name = request.name,
             surname = request.surname,
             email = request.email,
