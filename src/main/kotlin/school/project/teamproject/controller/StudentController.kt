@@ -1,5 +1,6 @@
 package school.project.teamproject.controller
 
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -13,8 +14,11 @@ import school.project.teamproject.mapper.toResponse
 @RequestMapping("/api/students")
 class StudentController(val studentService: StudentService) {
 
+    private val log = LoggerFactory.getLogger(javaClass)
+
     @PostMapping
     fun create(@RequestBody request: StudentCreateRequest): ResponseEntity<StudentResponse> {
+        log.info("POST /api/students - запрос на создание студента: {}", request.email)
         val tempStudent = Student(
             id = 0,
             name = request.name,
@@ -24,18 +28,26 @@ class StudentController(val studentService: StudentService) {
             grade = request.grade
         )
         val createdStudent = studentService.create(tempStudent)
+        log.info("Студент создан, id = {}", createdStudent.id)
         return ResponseEntity.status(HttpStatus.CREATED).body(createdStudent.toResponse())
     }
 
     @GetMapping
     fun getAllStudents(): List<StudentResponse> {
+        log.info("GET /api/students - список всех студентов")
         return studentService.getAll().map { it.toResponse() }
     }
 
     @DeleteMapping("/{id}")
     fun deleteStudent(@PathVariable id: Long): ResponseEntity<Void> {
+        log.info("DELETE /api/students/{} - попытка удаления", id)
         val deleted = studentService.delete(id)
-        return if (deleted) ResponseEntity.noContent().build()
-        else ResponseEntity.notFound().build()
+        return if (deleted) {
+            log.info("Студент с id {} удалён", id)
+            ResponseEntity.noContent().build()
+        } else {
+            log.warn("Попытка удалить несуществующего студента id={}", id)
+            ResponseEntity.notFound().build()
+        }
     }
 }
