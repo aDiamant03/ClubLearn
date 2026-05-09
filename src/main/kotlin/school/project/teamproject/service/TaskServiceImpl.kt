@@ -8,30 +8,30 @@ import school.project.teamproject.model.Task
 class TaskServiceImpl(private val taskDao: TaskDao) : TaskService {
 
     override fun create(task: Task): Task {
-        TODO("be implemented with sql task")
+        return taskDao.create(task)
     }
 
     override fun getAll(): List<Task> {
-        TODO("be implemented with sql task")
+        return taskDao.getAll()
     }
 
     override fun getById(id: Long): Task? {
-        TODO("be implemented with sql task")
+        return taskDao.getById(id)
     }
 
     override fun update(id: Long, task: Task): Task? {
-        TODO("be implemented with sql task")
+        return taskDao.update(id, task)
     }
 
     override fun delete(id: Long): Boolean {
-        TODO("be implemented with sql task")
+        return taskDao.delete(id)
     }
 
     override fun getByTeacherId(teacherId: Long): List<Task> {
-        TODO("be implemented with sql task")
+        return taskDao.getByTeacherId(teacherId)
     }
 
     override fun getTeacherByTaskId(id: Long): Task? {
-        TODO("be implemented with sql task")
+        return taskDao.getTeacherByTaskId(id)
     }
 }
