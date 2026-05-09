@@ -18,17 +18,9 @@ class StudentController(val studentService: StudentService) {
 
     @PostMapping
     fun create(@RequestBody request: StudentCreateRequest): ResponseEntity<StudentResponse> {
-        log.info("POST /api/students - запрос на создание студента: {}", request.email)
-        val tempStudent = Student(
-            name = request.name,
-            surname = request.surname,
-            email = request.email,
-            password = request.password,
-            grade = request.grade
-        )
-        val createdStudent = studentService.create(tempStudent)
-        log.info("Студент создан, id = {}", createdStudent.id)
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdStudent.toResponse())
+        log.info("POST /api/students - создание студента: {}", request.email)
+        val created = studentService.create(request)
+        return ResponseEntity.status(HttpStatus.CREATED).body(created.toResponse())
     }
 
     @GetMapping
