@@ -1,11 +1,8 @@
-package school.project.teamproject.service
+package school.project.teamproject.dao
 
-import org.springframework.stereotype.Service
 import school.project.teamproject.model.Teacher
-import java.util.concurrent.atomic.AtomicLong
 
-
-interface TeacherService {
+interface TeacherDao {
     fun create(teacher: Teacher): Teacher
     fun getAll(): List<Teacher>
     fun getById(id: Long): Teacher?
