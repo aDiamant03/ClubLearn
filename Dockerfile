@@ -1,7 +1,6 @@
 # Первый этап: СБОРКА
-FROM eclipse-temurin:17-jdk-jammy AS builder
+FROM eclipse-temurin:17-jdk AS builder
 WORKDIR /app
-
 # Копируем все необходимые файлы для Gradle Wrapper
 COPY gradlew gradlew
 COPY gradle gradle

@@ -1,25 +1,39 @@
 package school.project.teamproject.service
+
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import school.project.teamproject.dto.StudentCreateRequest
 import school.project.teamproject.model.Student
-import java.util.concurrent.atomic.AtomicLong
+import school.project.teamproject.repository.StudentRepository
 
 @Service
-class StudentService {
-    private val students = mutableListOf<Student>()
-    private val idGenerator = AtomicLong(1)
+@Transactional
+class StudentService(private val studentRepository: StudentRepository) {
 
-    fun create(student: Student): Student {
-        val newId = idGenerator.getAndIncrement()
-        val newStudent = student.copy(id = newId)
-        students.add(newStudent)
-        return newStudent
-    }
-    fun getAll(): List<Student> = students.toList()
-    fun getById(id: Long): Student? = students.find { it.id == id }
-    fun delete(id: Long): Boolean = students.removeIf { it.id == id }
-    fun clear() {
-        students.clear()
-        idGenerator.set(1)
+    private val log = LoggerFactory.getLogger(javaClass)
+
+    fun create(request: StudentCreateRequest): Student {
+        log.info("Создание студента: email={}", request.email)
+        val student = Student(
+            name = request.name,
+            surname = request.surname,
+            email = request.email,
+            password = request.password,
+            grade = request.grade
+        )
+        val saved = studentRepository.save(student)
+        log.info("Студент создан с id={}", saved.id)
+        return saved
     }
 
+    fun getAll(): List<Student> = studentRepository.findAll()
+    fun getById(id: Long): Student? = studentRepository.findById(id).orElse(null)
+    fun delete(id: Long): Boolean {
+        if (studentRepository.existsById(id)) {
+            studentRepository.deleteById(id)
+            return true
+        }
+        return false
+    }
 }

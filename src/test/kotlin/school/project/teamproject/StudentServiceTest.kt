@@ -1,41 +1,82 @@
-import school.project.teamproject.model.Student
-import school.project.teamproject.service.StudentService
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.BeforeEach
-import org.assertj.core.api.Assertions.assertThat
+package school.project.teamproject.service
 
-class StudentServiceTest{
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.ArgumentMatchers.any
+import org.mockito.InjectMocks
+import org.mockito.Mock
+import org.mockito.Mockito.*
+import org.mockito.junit.jupiter.MockitoExtension
+import school.project.teamproject.dto.StudentCreateRequest
+import school.project.teamproject.model.Student
+import school.project.teamproject.repository.StudentRepository
+import java.util.*
+
+@ExtendWith(MockitoExtension::class)
+class StudentServiceTest {
+
+    @Mock
+    private lateinit var studentRepository: StudentRepository
+
+    @InjectMocks
     private lateinit var studentService: StudentService
 
-    @BeforeEach
-    fun setUp() {
-        studentService = StudentService()
+    @Test
+    fun `create should save student and return with generated id`() {
+        val request = StudentCreateRequest(
+            name = "Иван",
+            surname = "Петров",
+            email = "ivan@example.com",
+            password = "secret",
+            grade = 8
+        )
+        val savedStudent = Student(
+            id = 1L,
+            name = request.name,
+            surname = request.surname,
+            email = request.email,
+            password = request.password,
+            grade = request.grade
+        )
+        `when`(studentRepository.save(any(Student::class.java))).thenReturn(savedStudent)
+        val result = studentService.create(request)
+        assertThat(result.id).isEqualTo(1L)
+        assertThat(result.name).isEqualTo("Иван")
+        assertThat(result.email).isEqualTo("ivan@example.com")
+        verify(studentRepository, times(1)).save(any(Student::class.java))
+    }
+
+
+
+    @Test
+    fun `getById should return student when exists`() {
+        val student = Student(id = 1L, name = "Ivan", surname = "Ivanov", email = "i@i.com", password = "pass", grade = 11)
+        `when`(studentRepository.findById(1L)).thenReturn(Optional.of(student))
+
+        val result = studentService.getById(1L)
+
+        assertThat(result).isNotNull
+        assertThat(result?.id).isEqualTo(1L)
+        assertThat(result?.name).isEqualTo("Ivan")
     }
 
     @Test
-    fun `should increment id when creating students`() {
-        val s1 = studentService.create(Student(name = "Ivan", surname = " Ivanov", email = "Ivanov@gmail.com", password = "eufnwd", id = 1))
-        val s2 = studentService.create(Student(name = "Oleg", surname = " Ivanov", email = "OlegIvanov@gmail.com", password = "eufnwd", id = 2))
+    fun `getById should return null when not exists`() {
+        `when`(studentRepository.findById(99L)).thenReturn(Optional.empty())
 
-        assertThat(s1.id).isEqualTo(1)
-        assertThat(s2.id).isEqualTo(2)
-        assertThat(studentService.getAll()).hasSize(2)
-    }
-    @Test
-    fun `should get by id retutn null if there is no student`(){
-        val s1 = studentService.create(Student(name = "Ivan", surname = " Ivanov", email = "Ivanov@gmail.com", password = "eufnwd", id = 1))
-        val idi = s1.id
-        studentService.delete(s1.id)
-        val result = studentService.getById(idi)
+        val result = studentService.getById(99L)
+
         assertThat(result).isNull()
     }
+
     @Test
-    fun `should return correct student by id`() {
-        val s1 = studentService.create(Student(name = "Ivan", surname = " Ivanov", email = "Ivanov@gmail.com", password = "eufnwd", id = 1))
-        val found = studentService.getById(s1.id)
+    fun `delete should return false when student does not exist`() {
+        `when`(studentRepository.existsById(99L)).thenReturn(false)
 
-        assertThat(found).isEqualTo(s1)
-        assertThat(found?.name).isEqualTo("Ivan")
+        val result = studentService.delete(99L)
+
+        assertThat(result).isFalse()
+        verify(studentRepository, never()).deleteById(any())
     }
-
 }
