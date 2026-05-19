@@ -1,18 +1,10 @@
 package school.project.teamproject.model
 
-import jakarta.persistence.*
-
-@Entity
-@Table(name = "students")
 data class Student(
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "student_seq")
-    @SequenceGenerator(name = "student_seq", sequenceName = "student_id_seq", allocationSize = 1)
-    var id: Long? = null,
-
-    var name: String = "",
-    var surname: String = "",
-    var email: String = "",
-    var password: String = "",
-    var grade: Int? = null
+    val id: Long,
+    val name: String,
+    val surname: String,
+    val email: String,
+    val password: String,
+    val grade: Int? = null
 )
