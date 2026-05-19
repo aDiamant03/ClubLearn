@@ -15,29 +15,46 @@ import org.springframework.security.web.SecurityFilterChain
 class SecurityConfig {
 
     @Bean
-    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
-        http
-            .csrf { it.disable() }
-            .authorizeHttpRequests { auth ->
-                auth.anyRequest().authenticated()
-            }
-            .httpBasic(Customizer.withDefaults())
-
-        return http.build()
+    fun passwordEncoder(): PasswordEncoder {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder()
     }
 
     @Bean
     fun userDetailsService(passwordEncoder: PasswordEncoder): UserDetailsService {
-        val user = User.withUsername("admin")
-            .password(passwordEncoder.encode("admin"))
-            .roles("USER")
+        val admin = User.builder()
+            .username("admin")
+            .password(passwordEncoder.encode("admin123"))
+            .roles("ADMIN")
             .build()
 
-        return InMemoryUserDetailsManager(user)
+        val teacher = User.builder()
+            .username("teacher")
+            .password(passwordEncoder.encode("teacher123"))
+            .roles("TEACHER")
+            .build()
+
+        val student = User.builder()
+            .username("student")
+            .password(passwordEncoder.encode("student123"))
+            .roles("STUDENT")
+            .build()
+
+        return InMemoryUserDetailsManager(admin, teacher, student)
     }
 
     @Bean
-    fun passwordEncoder(): PasswordEncoder {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder()
+    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+        return http
+            .csrf { it.disable() }
+            .authorizeHttpRequests { auth ->
+                auth
+                    .requestMatchers("/actuator/**").permitAll()
+                    .requestMatchers("/admin/**").hasRole("ADMIN")
+                    .requestMatchers("/teacher/**", "/teachers/**", "/tasks/**").hasAnyRole("TEACHER", "ADMIN")
+                    .requestMatchers("/student/**", "/students/**", "/attempts/**").hasAnyRole("STUDENT", "ADMIN")
+                    .anyRequest().authenticated()
+            }
+            .httpBasic(Customizer.withDefaults())
+            .build()
     }
 }
