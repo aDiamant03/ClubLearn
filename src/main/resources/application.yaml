@@ -12,3 +12,13 @@ app:
   security:
     username: "bat1354"
     password: "Lying Fr0m Y0u"
+    change-log: classpath:db/changelog-master.yaml
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      enabled: true
