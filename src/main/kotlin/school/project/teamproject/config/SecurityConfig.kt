@@ -19,8 +19,9 @@ class SecurityConfig {
     @Bean
     fun securityFilterChain(http: HttpSecurity ): SecurityFilterChain {
         http
-            .csrf { it.disable( ) }
+            .csrf(Customizer.withDefaults( ))
             .authorizeHttpRequests { auth ->
+                auth.requestMatchers("/api/students/**").permitAll()
                 auth.anyRequest().authenticated()
             }
             .httpBasic(Customizer.withDefaults( ))
