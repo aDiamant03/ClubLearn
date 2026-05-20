@@ -36,6 +36,10 @@ dependencies {
 	testImplementation("com.h2database:h2")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	runtimeOnly("org.postgresql:postgresql")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+//    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+//    runtimeOnly("com.h2database:h2")
+//    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 }
 
 kotlin {

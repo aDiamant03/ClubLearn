@@ -1,7 +1,6 @@
-package school.project.teamproject.model
+package school.project.teamproject.dto
 
-data class Student(
-    val id: Long,
+data class StudentCreateRequest(
     val name: String,
     val surname: String,
     val email: String,
