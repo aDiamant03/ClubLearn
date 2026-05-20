@@ -61,7 +61,6 @@ class AppStartupRunner(
         )
         val task = Task(
             id = 1,
-            teacherId = 3,
             title = "Solve equation",
             description = "Solve x + 2 = 5",
             answer = "3",
