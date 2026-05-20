@@ -20,22 +20,20 @@ repositories {
 }
 
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("org.springframework.boot:spring-boot-starter-actuator")
-	implementation("io.micrometer:micrometer-registry-prometheus")
-	implementation("org.slf4j:slf4j-api:2.0.9")
-	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	implementation("org.springframework.boot:spring-boot-starter-jdbc")
-	implementation(platform("org.springframework.boot:spring-boot-dependencies:3.4.4"))
-	implementation("org.springframework.boot:spring-boot-starter-security")
-	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-	testImplementation ("org.assertj:assertj-core:3.25.3")
-	testImplementation("com.h2database:h2")
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-	runtimeOnly("org.postgresql:postgresql")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("io.micrometer:micrometer-registry-prometheus")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.springframework.boot:spring-boot-starter-jdbc")
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:3.4.4"))
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    runtimeOnly("org.postgresql:postgresql")
 }
 
 kotlin {
