@@ -7,7 +7,7 @@ spring:
     hibernate:
       ddl-auto: none
   liquibase:
-    change-log: classpath:db/changelock-master.yaml
+    change-log: classpath:db/changelog-master.yaml
 
 management:
   endpoints:
