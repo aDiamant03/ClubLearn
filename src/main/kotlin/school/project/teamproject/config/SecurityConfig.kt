@@ -4,57 +4,42 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetailsService
-import org.springframework.security.crypto.factory.PasswordEncoderFactories
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 
 @Configuration
+@EnableWebSecurity
 class SecurityConfig {
 
     @Bean
-    fun passwordEncoder(): PasswordEncoder {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder()
-    }
-
-    @Bean
-    fun userDetailsService(passwordEncoder: PasswordEncoder): UserDetailsService {
-        val admin = User.builder()
-            .username("admin")
-            .password(passwordEncoder.encode("admin123"))
-            .roles("ADMIN")
-            .build()
-
-        val teacher = User.builder()
-            .username("teacher")
-            .password(passwordEncoder.encode("teacher123"))
-            .roles("TEACHER")
-            .build()
-
-        val student = User.builder()
-            .username("student")
-            .password(passwordEncoder.encode("student123"))
-            .roles("STUDENT")
-            .build()
-
-        return InMemoryUserDetailsManager(admin, teacher, student)
-    }
-
-    @Bean
-    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
-        return http
-            .csrf { it.disable() }
+    fun securityFilterChain(http: HttpSecurity ): SecurityFilterChain {
+        http
+            .csrf(Customizer.withDefaults( ))
             .authorizeHttpRequests { auth ->
-                auth
-                    .requestMatchers("/actuator/**").permitAll()
-                    .requestMatchers("/admin/**").hasRole("ADMIN")
-                    .requestMatchers("/teacher/**", "/teachers/**", "/tasks/**").hasAnyRole("TEACHER", "ADMIN")
-                    .requestMatchers("/student/**", "/students/**", "/attempts/**").hasAnyRole("STUDENT", "ADMIN")
-                    .anyRequest().authenticated()
+                auth.requestMatchers("/api/students/**").permitAll()
+                auth.anyRequest().authenticated()
             }
-            .httpBasic(Customizer.withDefaults())
+            .httpBasic(Customizer.withDefaults( ))
+        return http.build( )
+    }
+
+    @Bean
+    fun passwordEncoder(): PasswordEncoder {
+        return BCryptPasswordEncoder()
+    }
+
+    @Bean
+    fun userDetailsService(appProperties: AppProperties, encoder: PasswordEncoder): UserDetailsService {
+        val user = User.builder()
+            .username(appProperties.security.username)
+            .password(encoder.encode(appProperties.security.password))
+            .roles("USER")
             .build()
+        return InMemoryUserDetailsManager(user)
     }
 }
