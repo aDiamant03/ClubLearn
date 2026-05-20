@@ -21,6 +21,12 @@ class StudentController(private val studentService: StudentService) {
     @GetMapping
     fun getAll(): List<StudentResponse> = studentService.getAll().map { it.toResponse() }
 
+    @GetMapping("/{id}")
+    fun getById(@PathVariable id: Long): ResponseEntity<StudentResponse> {
+        val student = studentService.getById(id)
+        return student?.let { ResponseEntity.ok(it.toResponse()) } ?: ResponseEntity.notFound().build()
+    }
+
     @DeleteMapping("/{id}")
     fun delete(@PathVariable id: Long): ResponseEntity<Void> {
         studentService.delete(id)
