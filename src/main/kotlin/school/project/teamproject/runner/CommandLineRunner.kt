@@ -63,7 +63,7 @@ class AppStartupRunner(
             id = 1,
             title = "Solve equation",
             description = "Solve x + 2 = 5",
-            answer = "3",
+            correctAnswer = "3",
             difficulty = "EASY",
             subject = "Math",
             topic = "Linear equations",

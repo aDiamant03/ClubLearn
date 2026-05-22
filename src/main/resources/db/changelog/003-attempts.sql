@@ -1,12 +1,17 @@
-CREATE TABLE tasks
+CREATE TABLE answers
 (
-    id             UUID PRIMARY KEY                       NOT NULL,
-    user_id        UUID                                   NOT NULL,
-    creation_time  TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-    correct_answer TEXT                                   NOT NULL
-);
+    id              BIGSERIAL PRIMARY KEY,
+    task_id         BIGINT                                  NOT NULL,
+    student_id      BIGINT                                  NOT NULL,
+    text            TEXT                                    NOT NULL,
+    status          VARCHAR(50) DEFAULT 'SENT'              NOT NULL,
+    teacher_comment TEXT,
+    score           INT,
+    created_at      TIMESTAMP   DEFAULT CURRENT_TIMESTAMP   NOT NULL,
+    checked_at      TIMESTAMP,
 
-ALTER TABLE tasks
-ADD CONSTRAINT fk_tasks_users
-FOREIGN KEY (user_id)
-REFERENCES users (id);
+    CONSTRAINT fk_answers_tasks
+        FOREIGN KEY (task_id)
+            REFERENCES tasks (id)
+            ON DELETE CASCADE
+);
