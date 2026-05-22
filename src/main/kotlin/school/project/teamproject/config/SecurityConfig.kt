@@ -48,11 +48,11 @@ class SecurityConfig {
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
+                    .requestMatchers("/", "/index.html", "/favicon.ico").permitAll()
                     .requestMatchers("/actuator/**").permitAll()
-                    .requestMatchers("/admin/**").hasRole("ADMIN")
-                    .requestMatchers("/teacher/**", "/teachers/**", "/tasks/**").hasAnyRole("TEACHER", "ADMIN")
-                    .requestMatchers("/student/**", "/students/**", "/attempts/**").hasAnyRole("STUDENT", "ADMIN")
-                    .anyRequest().authenticated()
+                    .requestMatchers("/api/tasks/**").hasAnyRole("TEACHER", "STUDENT", "ADMIN")
+                    .requestMatchers("/api/answers/**").hasAnyRole("TEACHER", "STUDENT", "ADMIN")
+                    .anyRequest().permitAll()
             }
             .httpBasic(Customizer.withDefaults())
             .build()

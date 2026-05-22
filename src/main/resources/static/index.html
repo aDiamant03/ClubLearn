@@ -19,12 +19,27 @@
 
 <div id="createTaskBlock">
     <h2>Создать задачу</h2>
+
     <input id="title" placeholder="Название задачи">
     <br><br>
+
     <textarea id="description" placeholder="Описание задачи"></textarea>
     <br><br>
+
     <input id="correctAnswer" placeholder="Правильный ответ">
     <br><br>
+
+    <label>Тип проверки:</label>
+    <select id="checkType">
+        <option value="AUTO">Автопроверка</option>
+        <option value="MANUAL">Проверка учителем</option>
+    </select>
+    <br><br>
+
+    <label>Максимальный балл:</label>
+    <input id="points" type="number" value="10">
+    <br><br>
+
     <button onclick="createTask()">Добавить задачу</button>
 </div>
 
@@ -33,6 +48,14 @@
 <h2>Список задач</h2>
 <button onclick="loadTasks()">Обновить задачи</button>
 <div id="tasks"></div>
+
+<hr>
+
+<div id="myAnswersBlock">
+    <h2>Мои ответы</h2>
+    <button onclick="loadMyAnswers()">Обновить мои ответы</button>
+    <div id="myAnswers"></div>
+</div>
 
 <hr>
 
@@ -55,6 +78,7 @@
     let username = "";
     let password = "";
     let currentRole = "";
+    let savedAnswers = {};
 
     function login() {
         const login = document.getElementById("loginUsername").value;
@@ -80,6 +104,10 @@
         document.getElementById("currentUser").innerText = "Вы вошли как: " + currentRole;
         updateAccess();
         loadTasks();
+
+        if (currentRole === "student") {
+            loadMyAnswers();
+        }
     }
 
     function logout() {
@@ -90,6 +118,7 @@
         document.getElementById("currentUser").innerText = "Вы не вошли";
         document.getElementById("tasks").innerHTML = "";
         document.getElementById("answers").innerHTML = "";
+        document.getElementById("myAnswers").innerHTML = "";
         updateAccess();
     }
 
@@ -99,6 +128,9 @@
 
         document.getElementById("answersBlock").style.display =
             currentRole === "teacher" || currentRole === "admin" ? "block" : "none";
+
+        document.getElementById("myAnswersBlock").style.display =
+            currentRole === "student" ? "block" : "none";
     }
 
     function authHeader() {
@@ -110,16 +142,32 @@
         return "Basic " + btoa(username + ":" + password);
     }
 
+    function normalize(text) {
+        return String(text || "").trim().toLowerCase();
+    }
+
+    function statusText(status) {
+        if (status === "ACCEPTED") return "Верно";
+        if (status === "REJECTED") return "Неверно";
+        return "Ожидает проверки учителем";
+    }
+
+    function statusColor(status) {
+        if (status === "ACCEPTED") return "green";
+        if (status === "REJECTED") return "red";
+        return "orange";
+    }
+
     async function createTask() {
         const task = {
             teacherId: 1,
             title: document.getElementById("title").value,
             description: document.getElementById("description").value,
             correctAnswer: document.getElementById("correctAnswer").value,
-            difficulty: "EASY",
+            difficulty: document.getElementById("checkType").value,
             subject: "Общее",
             topic: "Тема",
-            points: 10,
+            points: parseInt(document.getElementById("points").value) || 10,
             hint: ""
         };
 
@@ -141,107 +189,213 @@
     }
 
     async function loadTasks() {
-    const response = await fetch("/api/tasks", {
-        headers: {
-            "Authorization": authHeader()
+        const response = await fetch("/api/tasks", {
+            headers: {
+                "Authorization": authHeader()
+            }
+        });
+
+        const tasksDiv = document.getElementById("tasks");
+        tasksDiv.innerHTML = "";
+
+        if (!response.ok) {
+            tasksDiv.innerHTML = "Ошибка загрузки задач";
+            return;
         }
-    });
 
-    const tasksDiv = document.getElementById("tasks");
-    tasksDiv.innerHTML = "";
+        const tasks = await response.json();
+        tasks.reverse();
 
-    if (!response.ok) {
-        tasksDiv.innerHTML = "Ошибка загрузки задач";
-        return;
+        tasks.forEach(task => {
+            const div = document.createElement("div");
+            div.style.border = "1px solid black";
+            div.style.margin = "10px";
+            div.style.padding = "10px";
+
+            const checkTypeText =
+                task.difficulty === "MANUAL"
+                    ? "Проверка учителем"
+                    : "Автопроверка";
+
+            div.innerHTML = `
+                <h3>${task.title}</h3>
+
+                <p>${task.description || ""}</p>
+
+                <p><b>Тип проверки:</b> ${checkTypeText}</p>
+                <p><b>Максимальный балл:</b> ${task.points || 0}</p>
+
+                ${currentRole === "student" ? `
+                    <textarea id="answer-${task.id}" placeholder="Ответ ученика"></textarea>
+                    <br><br>
+                    <button onclick="sendAnswer(${task.id})">Отправить ответ</button>
+                    <div id="result-${task.id}" style="margin-top: 10px;"></div>
+                ` : ""}
+
+                ${currentRole === "teacher" || currentRole === "admin" ? `
+                    <p><b>Правильный ответ:</b> ${task.correctAnswer || ""}</p>
+                    <button onclick="deleteTask(${task.id})">Удалить задачу</button>
+                ` : ""}
+            `;
+
+            tasksDiv.appendChild(div);
+        });
     }
 
-    const tasks = await response.json();
-    tasks.reverse();
+    async function sendAnswer(taskId) {
+        const answerText = document.getElementById("answer-" + taskId).value;
 
-    tasks.forEach(task => {
-        const div = document.createElement("div");
-        div.style.border = "1px solid black";
-        div.style.margin = "10px";
-        div.style.padding = "10px";
+        const tasksResponse = await fetch("/api/tasks", {
+            headers: {
+                "Authorization": authHeader()
+            }
+        });
 
-        div.innerHTML = `
-            <h3>${task.title}</h3>
-            <p>${task.description || ""}</p>
-            <p><b>Предмет:</b> ${task.subject || ""}</p>
-            <p><b>Баллы:</b> ${task.points}</p>
+        const tasks = await tasksResponse.json();
+        const task = tasks.find(t => t.id === taskId);
 
-            ${currentRole === "student" ? `
-                <textarea id="answer-${task.id}" placeholder="Ответ ученика"></textarea>
-                <br><br>
-                <button onclick="sendAnswer(${task.id})">Отправить ответ</button>
-                <div id="result-${task.id}" style="margin-top: 10px;"></div>
-            ` : ""}
+        let status = "SENT";
+        let score = 0;
+        let teacherComment = "";
 
-            ${currentRole === "teacher" || currentRole === "admin" ? `
-                <button onclick="deleteTask(${task.id})">Удалить задачу</button>
-            ` : ""}
-        `;
+        const isManual = task.difficulty === "MANUAL";
 
-        tasksDiv.appendChild(div);
-    });
-}
-
-async function sendAnswer(taskId) {
-    const answerText = document.getElementById("answer-" + taskId).value;
-
-    const answer = {
-        taskId: taskId,
-        studentId: 1,
-        text: answerText,
-        status: "SENT",
-        teacherComment: "",
-        score: 0
-    };
-
-    const response = await fetch("/api/answers", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": authHeader()
-        },
-        body: JSON.stringify(answer)
-    });
-
-    const resultDiv = document.getElementById("result-" + taskId);
-
-    if (!response.ok) {
-        resultDiv.innerHTML = `<p style="color: red;"><b>Ошибка отправки ответа</b></p>`;
-        return;
-    }
-
-    const taskResponse = await fetch("/api/tasks/" + taskId, {
-        headers: {
-            "Authorization": authHeader()
+        if (!isManual) {
+            if (normalize(answerText) === normalize(task.correctAnswer)) {
+                status = "ACCEPTED";
+                score = task.points || 0;
+                teacherComment = "Ответ верный";
+            } else {
+                status = "REJECTED";
+                score = 0;
+                teacherComment = "Ответ неверный";
+            }
         }
-    });
 
-    if (!taskResponse.ok) {
-        resultDiv.innerHTML = `<p style="color: green;"><b>Ответ отправлен</b></p>`;
-        return;
+        const answer = {
+            taskId: taskId,
+            studentId: 1,
+            text: answerText,
+            status: status,
+            teacherComment: teacherComment,
+            score: score
+        };
+
+        const response = await fetch("/api/answers", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": authHeader()
+            },
+            body: JSON.stringify(answer)
+        });
+
+        const resultDiv = document.getElementById("result-" + taskId);
+
+        if (response.ok) {
+            if (isManual) {
+                resultDiv.innerHTML = `
+                    <div style="border: 2px solid orange; padding: 10px;">
+                        Ответ отправлен учителю на проверку.
+                        Балл и комментарий появятся в разделе “Мои ответы”.
+                    </div>
+                `;
+            } else if (status === "ACCEPTED") {
+                resultDiv.innerHTML = `
+                    <div style="border: 2px solid green; padding: 10px; color: green;">
+                        Верно! Вы получили ${score} баллов.
+                        <br>
+                        Правильный ответ: ${task.correctAnswer}
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div style="border: 2px solid red; padding: 10px; color: red;">
+                        Неверно. Вы получили 0 баллов.
+                        <br>
+                        Правильный ответ: ${task.correctAnswer}
+                    </div>
+                `;
+            }
+
+            loadMyAnswers();
+        } else {
+            alert("Ошибка отправки ответа");
+        }
     }
 
-    const task = await taskResponse.json();
+    async function loadMyAnswers() {
+        if (currentRole !== "student") {
+            return;
+        }
 
-    const userAnswer = answerText.trim().toLowerCase();
-    const correctAnswer = String(task.correctAnswer || "").trim().toLowerCase();
+        const answersResponse = await fetch("/api/answers", {
+            headers: {
+                "Authorization": authHeader()
+            }
+        });
 
-    if (userAnswer === correctAnswer) {
-        resultDiv.innerHTML = `
-            <p style="color: green;"><b>Верно!</b></p>
-            <p><b>Правильный ответ:</b> ${task.correctAnswer}</p>
-        `;
-    } else {
-        resultDiv.innerHTML = `
-            <p style="color: red;"><b>Неверно.</b></p>
-            <p><b>Правильный ответ:</b> ${task.correctAnswer}</p>
-        `;
+        const myAnswersDiv = document.getElementById("myAnswers");
+        myAnswersDiv.innerHTML = "";
+
+        if (!answersResponse.ok) {
+            myAnswersDiv.innerHTML = "Ошибка загрузки моих ответов";
+            return;
+        }
+
+        const answers = await answersResponse.json();
+
+        const tasksResponse = await fetch("/api/tasks", {
+            headers: {
+                "Authorization": authHeader()
+            }
+        });
+
+        const tasks = await tasksResponse.json();
+
+        const myAnswers = answers
+            .filter(answer => answer.studentId === 1)
+            .reverse();
+
+        if (myAnswers.length === 0) {
+            myAnswersDiv.innerHTML = "<p>Вы пока не отправляли ответы</p>";
+            return;
+        }
+
+        myAnswers.forEach(answer => {
+            const task = tasks.find(t => t.id === answer.taskId);
+
+            const div = document.createElement("div");
+            div.style.border = "1px solid gray";
+            div.style.margin = "10px";
+            div.style.padding = "10px";
+
+            const color = statusColor(answer.status);
+
+            div.innerHTML = `
+                <h3>${task ? task.title : "Задача не найдена"}</h3>
+
+                <p><b>Описание:</b> ${task ? task.description : ""}</p>
+
+                <p><b>Ваш ответ:</b></p>
+                <p>${answer.text}</p>
+
+                <p style="color: ${color};">
+                    <b>Статус:</b> ${statusText(answer.status)}
+                </p>
+
+                <p><b>Комментарий учителя:</b> ${answer.teacherComment || "Комментария пока нет"}</p>
+
+                <p><b>Баллы:</b> ${answer.score || 0} / ${task ? task.points : 0}</p>
+
+                ${task && task.difficulty !== "MANUAL" ? `
+                    <p><b>Правильный ответ:</b> ${task.correctAnswer || ""}</p>
+                ` : ""}
+            `;
+
+            myAnswersDiv.appendChild(div);
+        });
     }
-}
 
     async function loadAnswers() {
         const response = await fetch("/api/answers", {
@@ -283,7 +437,11 @@ async function sendAnswer(taskId) {
             return;
         }
 
+        savedAnswers = {};
+
         filteredAnswers.forEach(answer => {
+            savedAnswers[answer.id] = answer;
+
             const task = tasks.find(t => t.id === answer.taskId);
 
             const div = document.createElement("div");
@@ -291,39 +449,54 @@ async function sendAnswer(taskId) {
             div.style.margin = "10px";
             div.style.padding = "10px";
 
+            const checkTypeText =
+                task && task.difficulty === "MANUAL"
+                    ? "Проверка учителем"
+                    : "Автопроверка";
+
+            const color = statusColor(answer.status);
+
             div.innerHTML = `
                 <h3>${task ? task.title : "Задача не найдена"}</h3>
 
                 <p><b>Описание задачи:</b></p>
                 <p>${task ? task.description : ""}</p>
 
+                <p><b>Тип проверки:</b> ${checkTypeText}</p>
                 <p><b>Правильный ответ:</b> ${task ? task.correctAnswer : ""}</p>
+                <p><b>Максимальный балл:</b> ${task ? task.points : 0}</p>
 
                 <hr>
 
                 <p><b>ID ученика:</b> ${answer.studentId}</p>
+
                 <p><b>Ответ ученика:</b></p>
                 <p>${answer.text}</p>
 
-                <p><b>Статус:</b> ${answer.status}</p>
+                <p style="color: ${color};">
+                    <b>Статус:</b> ${statusText(answer.status)}
+                </p>
+
                 <p><b>Комментарий:</b> ${answer.teacherComment || ""}</p>
                 <p><b>Баллы:</b> ${answer.score || 0}</p>
 
-                ${answer.status === "SENT" ? `
-                    <button onclick="checkAnswer(${answer.id}, ${answer.taskId}, ${answer.studentId}, '${answer.text}', 'ACCEPTED')">
-                        Принять
-                    </button>
+                <hr>
 
-                    <button onclick="checkAnswer(${answer.id}, ${answer.taskId}, ${answer.studentId}, '${answer.text}', 'REJECTED')">
-                        Отклонить
-                    </button>
-                ` : ""}
+                ${answer.status === "SENT" ? `
+                    <textarea id="comment-${answer.id}" placeholder="Комментарий учителя">${answer.teacherComment || ""}</textarea>
+                    <br><br>
+
+                    <input id="score-${answer.id}" type="number" placeholder="Баллы" value="${answer.score || 0}">
+                    <br><br>
+
+                    <button onclick="checkAnswer(${answer.id}, 'ACCEPTED')">Принять / сохранить как верно</button>
+                    <button onclick="checkAnswer(${answer.id}, 'REJECTED')">Отклонить / сохранить как неверно</button>
+                ` : `
+                    <p><b>Этот ответ уже проверен.</b></p>
+                `}
 
                 ${currentRole === "admin" ? `
-                    <br><br>
-                    <button onclick="deleteAnswer(${answer.id})">
-                        Удалить ответ
-                    </button>
+                    <button onclick="deleteAnswer(${answer.id})">Удалить ответ</button>
                 ` : ""}
             `;
 
@@ -331,15 +504,20 @@ async function sendAnswer(taskId) {
         });
     }
 
-    async function checkAnswer(id, taskId, studentId, text, status) {
+    async function checkAnswer(id, status) {
+        const oldAnswer = savedAnswers[id];
+
+        const comment = document.getElementById("comment-" + id).value;
+        const score = parseInt(document.getElementById("score-" + id).value) || 0;
+
         const answer = {
-            id: id,
-            taskId: taskId,
-            studentId: studentId,
-            text: text,
+            id: oldAnswer.id,
+            taskId: oldAnswer.taskId,
+            studentId: oldAnswer.studentId,
+            text: oldAnswer.text,
             status: status,
-            teacherComment: status === "ACCEPTED" ? "Ответ принят" : "Ответ отклонён",
-            score: status === "ACCEPTED" ? 10 : 0
+            teacherComment: comment,
+            score: score
         };
 
         const response = await fetch("/api/answers/" + id, {
@@ -359,27 +537,6 @@ async function sendAnswer(taskId) {
         }
     }
 
-    async function deleteAnswer(id) {
-        if (currentRole !== "admin") {
-            alert("Удалять ответы может только админ");
-            return;
-        }
-
-        const response = await fetch("/api/answers/" + id, {
-            method: "DELETE",
-            headers: {
-                "Authorization": authHeader()
-            }
-        });
-
-        if (response.ok) {
-            alert("Ответ удалён");
-            loadAnswers();
-        } else {
-            alert("Ошибка удаления ответа");
-        }
-    }
-
     async function deleteTask(id) {
         const response = await fetch("/api/tasks/" + id, {
             method: "DELETE",
@@ -393,6 +550,22 @@ async function sendAnswer(taskId) {
             loadTasks();
         } else {
             alert("Ошибка удаления задачи");
+        }
+    }
+
+    async function deleteAnswer(id) {
+        const response = await fetch("/api/answers/" + id, {
+            method: "DELETE",
+            headers: {
+                "Authorization": authHeader()
+            }
+        });
+
+        if (response.ok) {
+            alert("Ответ удалён");
+            loadAnswers();
+        } else {
+            alert("Ошибка удаления ответа");
         }
     }
 
